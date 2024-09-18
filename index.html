@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Accident Map</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</head>
+<body>
+  <div id="map" style="width: 600px; height: 400px;"></div>
+
+  <script>
+    var map = L.map('map').setView([33.5903, 130.4017], 13);  // 福岡市の中心座標
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // APIから交通事故データを取得して地図にプロット
+    fetch('/api/accidents')
+      .then(response => response.json())
+      .then(data => {
+        var icon_mini = L.icon({
+          iconSize:[30,30]
+        })
+        data.forEach(function(accident) {
+          // 緯度・経度の情報を使用してマーカーをプロット
+          L.circle([accident["発生場所緯度"], accident["発生場所経度"]],
+          {
+            color: 'red',          // 枠線の色
+            opacity: 0.3,
+            fillColor: '#f03',     // 塗りつぶしの色
+            fillOpacity: 0.3,      // 透明度
+            radius: 50 
+          }
+          )
+            .addTo(map)
+            .bindPopup(`事故種別: ${accident["計上所属"]}`);
+        });
+      })
+      .catch(error => console.error('Error fetching accident data:', error));
+  </script>
+</body>
+</html>
